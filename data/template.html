@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfoJobs Candidatures</title>
+    <base target="_blank">
+    <style type="text/css">
+        body {
+            font-family: -apple-system, Helvetica, Arial, sans-serif;
+            font-size: 1em;
+            line-height: 1.5;
+            word-wrap: break-word;
+            background: #F9F9F9;
+        }
+
+        a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+
+        td,
+        th {
+            border: 1px lightgray solid;
+            padding: 6px 13px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <table>
+        <thead>
+            <tr>
+                {%- for header in headers %}
+                <th>{{header}}</th>
+                {%- endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {%- for item in items %}
+            <tr>
+                <td>
+                    <a href="{{item.offer_url}}">{{item.title}}</a>
+                </td>
+                <td>{{item.company_name}}</td>
+                <td>{{item.location}}</td>
+                <td title="{{item.status.name}}">
+                    <a href="{{item.details_url}}">{{item.status.emoji}}</a>
+                </td>
+            </tr>
+            {%- endfor %}
+        </tbody>
+    </table>
+</body>
+
+</html>
