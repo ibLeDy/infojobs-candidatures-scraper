@@ -149,17 +149,17 @@ def can_update_results(force):
     can_update = False
     if os.path.isfile(RESULTS_DATA_FILE):
         message = 'Existing results will be overwritten, continue? [Y/N]: '
-        if input(message).lower() == 'y':
-            can_update = True
+        if input(message).lower() != 'y':
+            return False
+        can_update = True
 
     try:
         modified = datetime.fromtimestamp(os.path.getmtime(RESULTS_DATA_FILE))
+        if (datetime.now() - modified).seconds >= 3600:  # NOTE: one hour
+            print('Results are older than an hour, generating new results')
+            can_update = True
     except FileNotFoundError:
         print('Previous results not found, generating new ones')
-        can_update = True
-
-    if (datetime.now() - modified).seconds >= 3600:  # NOTE: one hour
-        print('Results are older than an hour, generating new results')
         can_update = True
 
     return can_update
