@@ -1,18 +1,18 @@
+import argparse
+import json
 import os
 import re
-import json
 import time
-import argparse
 import webbrowser
-from datetime import datetime
 from collections import namedtuple
+from datetime import datetime
 
 import pyautogui
 import pyperclip
 from bs4 import BeautifulSoup
 from jinja2 import Template
-from rich.table import Table
 from rich.console import Console
+from rich.table import Table
 
 BASE_URL = 'https://www.infojobs.net'
 CANDIDATURES_URL = f'{BASE_URL}/candidate/applications/list.xhtml'
@@ -39,7 +39,10 @@ class Candidatures:
     def _candidature_matches_past_candidature(self, title, company):
         if self.past_candidatures is not None:
             for candidature in self.past_candidatures:
-                if candidature['title'] == title and candidature['company_name'] == company:
+                if (
+                    candidature['title'] == title
+                    and candidature['company_name'] == company
+                ):
                     return candidature
 
     def parse_my_candidatures(self, page, parsed_candidatures=None):
@@ -60,17 +63,22 @@ class Candidatures:
                     company_name = item.div.h3.span.a.span.text
 
                     past_candidature = self._candidature_matches_past_candidature(
-                        candidature_title, company_name
+                        candidature_title,
+                        company_name,
                     )
                     if past_candidature is not None:
-                        if (past_candidature['events'][0]['icon'].startswith(last_status)
-                           or last_status == 'iconfont-Check'):  # noqa
+                        if (
+                            past_candidature['events'][0]['icon'].startswith(
+                                last_status,
+                            )
+                            or last_status == 'iconfont-Check'
+                        ):  # noqa
                             all_candidatures.append(past_candidature)
                             continue
 
                     details_url = BASE_URL + item.div.h2.a.attrs['href']
                     details = self.parse_individual_candidature_page(
-                        get_page(details_url, self.delay)
+                        get_page(details_url, self.delay),
                     )
 
                     all_candidatures.append(
@@ -79,12 +87,14 @@ class Candidatures:
                             'company_name': company_name,
                             'last_seen': last_seen,
                             'location': details['location'],
-                            'registered_and_vacancies': details['registered_and_vacancies'],
+                            'registered_and_vacancies': details[
+                                'registered_and_vacancies'
+                            ],
                             'status': details['status'],
                             'details_url': details_url,
                             'offer_url': details['offer_url'],
                             'events': details['events'],
-                        }
+                        },
                     )
         except AttributeError as e:
             if error_count < 3:
@@ -99,7 +109,7 @@ class Candidatures:
             page_number = next_button.attrs['onclick'][index]
             return self.parse_my_candidatures(
                 f'{NEXT_PAGE_URL}{page_number}',
-                all_candidatures
+                all_candidatures,
             )
 
         return all_candidatures
@@ -113,7 +123,7 @@ class Candidatures:
             'registered_and_vacancies': registered_and_vacancies.text,
             'offer_url': details.h2.a.attrs['href'],
             'status': None,
-            'events': []
+            'events': [],
         }
         for item in soup.find_all('li', {'class': 'timeline-event'}):
             candidature_details['events'].append(
@@ -121,11 +131,11 @@ class Candidatures:
                     'event': item.p.text,
                     'date': item.time.text,
                     'icon': ' '.join(item.span.attrs['class'][1:]),
-                }
+                },
             )
 
         candidature_details['status'] = self.compute_candidature_status(
-            candidature_details['events']
+            candidature_details['events'],
         )
         return candidature_details
 
@@ -137,9 +147,12 @@ class Candidatures:
             'iconfont-Check marked': Strength('Included', 2, '✔️'),
             'iconfont-Close alert': Strength('Rejected', 3, '❌'),
         }
-        return dict(max(
-            [strengths[event['icon']] for event in events], key=lambda x: x.value
-        )._asdict())
+        return dict(
+            max(
+                [strengths[event['icon']] for event in events],
+                key=lambda x: x.value,
+            )._asdict(),
+        )
 
 
 def can_update_results(force):
@@ -212,16 +225,24 @@ def build_results_page():
         all_candidatures = json.load(fp)
 
     with open(RESULTS_PAGE_FILE, 'w') as fp:
-        fp.write(template.render({
-            'headers': ['Title', 'Company', 'Location', 'Status'],
-            'items': all_candidatures,
-        }))
+        fp.write(
+            template.render(
+                {
+                    'headers': ['Title', 'Company', 'Location', 'Status'],
+                    'items': all_candidatures,
+                },
+            ),
+        )
 
     with open(RESULTS_SORTED_PAGE_FILE, 'w') as fp:
-        fp.write(template.render({
-            'headers': ['Title', 'Company', 'Location', 'Status'],
-            'items': sort_candidatures_by_status(all_candidatures),
-        }))
+        fp.write(
+            template.render(
+                {
+                    'headers': ['Title', 'Company', 'Location', 'Status'],
+                    'items': sort_candidatures_by_status(all_candidatures),
+                },
+            ),
+        )
 
 
 def save_results_to_disk(results):
