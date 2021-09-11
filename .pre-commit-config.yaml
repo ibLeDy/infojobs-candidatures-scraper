@@ -42,7 +42,7 @@ repos:
     hooks:
       - id: setup-cfg-fmt
   - repo: https://github.com/psf/black
-    rev: 21.7b0
+    rev: 21.8b0
     hooks:
       - id: black
         args: [--skip-string-normalization]
